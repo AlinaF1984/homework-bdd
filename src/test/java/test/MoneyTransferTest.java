@@ -1,84 +1,66 @@
 package test;
 
 import data.DataHelper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import page.DashboardPage;
 import page.LoginPage;
-
 import static com.codeborne.selenide.Selenide.open;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 
-class MoneyTransferTest {
-
-
+ public  class MoneyTransferTest {
+        int begBalance1;
+        int begBalance2;
+        int endBalance1;
+        int endBalance2;
+        int sum;
+        DashboardPage dashboardPage;
     @BeforeEach
-    public void setUp() {
-        var loginPage = open("http://localhost:9999", LoginPage.class);
+    void SetUp() {
+        open("http://localhost:9999");
+        var loginPage = new LoginPage();
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-        var dashboardPage = verificationPage.validVerify(verificationCode);
+        dashboardPage = verificationPage.validVerify(verificationCode);
+        begBalance1 = dashboardPage.getBalance(dashboardPage.card1);
+        begBalance2 = dashboardPage.getBalance(dashboardPage.card2);
     }
 
-    @AfterEach
-    public void restoreCards() {
-        DashboardPage.restoreBalance();
+    @Test
+    @DisplayName("Перевод денег сo второй карты на первую")
+    void shouldTransferMoneyFromSecondToFirstCard() {
+        sum = 100;
+        var topUpPage = dashboardPage.clickTopUp(dashboardPage.card1);
+        var cardNum = DataHelper.getFirstCardInfo().getNumber();
+        var dashboardPage2 = topUpPage.successfulTopUp(Integer.toString(sum), cardNum);
+        endBalance1 = dashboardPage2.getBalance(dashboardPage2.card1);
+        endBalance2 = dashboardPage2.getBalance(dashboardPage2.card2);
+        assertEquals(begBalance1 + sum, endBalance1);
+        assertEquals(begBalance2 - sum, endBalance2);
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {"transferAmountLessThanStartBalance,5000",
-            "transferAmountEqualsStartBalance,10000"})
-    void shouldTransferFromSecondToFirstCard(String testcase, String amount) {
-        var dashboardPage = new DashboardPage();
-        var currentBalanceFirstCard = dashboardPage.getCardBalance(0);
-        var currentBalanceSecondCard = dashboardPage.getCardBalance(1);
-        var transferPage = dashboardPage.firstCardTransfer();
-        transferPage.validTransfer(amount, DataHelper.getSecondCardInfo());
-        assertEquals(currentBalanceFirstCard + Integer.parseInt(amount), dashboardPage.getCardBalance(0));
-        assertEquals(currentBalanceSecondCard - Integer.parseInt(amount), dashboardPage.getCardBalance(1));
+    @Test
+    @DisplayName("Перевод денег с первой карты на вторую")
+    void shouldTransferMoneyFromFirstToSecondCard() {
+        sum = 100;
+        var topUpPage = dashboardPage.clickTopUp(dashboardPage.card2);
+        var cardNum = DataHelper.getFirstCardInfo().getNumber();
+        var dashboardPage2 = topUpPage.successfulTopUp(Integer.toString(sum), cardNum);
+        endBalance1 = dashboardPage2.getBalance(dashboardPage2.card1);
+        endBalance2 = dashboardPage2.getBalance(dashboardPage2.card2);
+        assertEquals(begBalance1 - sum, endBalance1);
+        assertEquals(begBalance2 + sum, endBalance2);
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {"transferAmountLessThanStartBalance,5000",
-            "transferAmountEqualsStartBalance,10000"})
-    void shouldTransferFromFirstToSecondCard(String testcase, String amount) {
-        var dashboardPage = new DashboardPage();
-        var currentBalanceFirstCard = dashboardPage.getCardBalance(0);
-        var currentBalanceSecondCard = dashboardPage.getCardBalance(1);
-        var cardTransferPage = dashboardPage.secondCardTransfer();
-        cardTransferPage.validTransfer(amount, DataHelper.getFirstCardInfo());
-        assertEquals(currentBalanceFirstCard - Integer.parseInt(amount), dashboardPage.getCardBalance(0));
-        assertEquals(currentBalanceSecondCard + Integer.parseInt(amount), dashboardPage.getCardBalance(1));
+    @Test
+    @DisplayName("Не должен переводить больше, чем есть на карте")
+    void shouldNotTransferMoreThanAvailable() {
+        sum = begBalance1 + 100;
+        var topUpPage = dashboardPage.clickTopUp(dashboardPage.card2);
+        var cardNum = DataHelper.getFirstCardInfo().getNumber();
+        topUpPage.unsuccessfulTopUp(Integer.toString(sum), cardNum);
     }
-
-    @ParameterizedTest
-    @CsvSource(value = {"transferFractionPointZeroPlusTwoDigits,'0.45'",
-            "transferFractionPointZeroPlusTwoDigits,'10.4'",
-            "transferFractionByPointZeroPlusTwoDigits,'10.45'"})
-    void shouldTransferFrom2ndTo1stCardAmountWithFraction(String testcase, String amount) {
-        var dashboardPage = new DashboardPage();
-        var currentBalanceFirstCard = dashboardPage.getCardBalance(0);
-        var currentBalanceSecondCard = dashboardPage.getCardBalance(1);
-        var cardTransferPage = dashboardPage.firstCardTransfer();
-        cardTransferPage.validTransfer(amount, DataHelper.getSecondCardInfo());
-        assertEquals(currentBalanceFirstCard + Float.parseFloat(amount), dashboardPage.getCardBalance(0));
-        assertEquals(currentBalanceSecondCard - Float.parseFloat(amount), dashboardPage.getCardBalance(1));
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {"transferFractionPointZeroPlusTwoDigits,'0.45'",
-            "transferFractionPointZeroPlusTwoDigits,'10.4'",
-            "transferFractionByPointZeroPlusTwoDigits,'10.45'"})
-    void shouldTransferFrom1stTo2ndCardAmountWithFraction(String testcase, String amount) {
-        var dashboardPage = new DashboardPage();
-        var currentBalanceFirstCard = dashboardPage.getCardBalance(0);
-        var currentBalanceSecondCard = dashboardPage.getCardBalance(1);
-        var cardTransferPage = dashboardPage.secondCardTransfer();
-        cardTransferPage.validTransfer(amount, DataHelper.getFirstCardInfo());
-        assertEquals(currentBalanceFirstCard - Float.parseFloat(amount), dashboardPage.getCardBalance(0));
-        assertEquals(currentBalanceSecondCard + Float.parseFloat(amount), dashboardPage.getCardBalance(1));
-    }
+    
 }

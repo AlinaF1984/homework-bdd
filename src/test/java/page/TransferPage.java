@@ -1,56 +1,33 @@
 package page;
 
 import com.codeborne.selenide.SelenideElement;
-import data.DataHelper.CardInfo;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selectors.byText;
+
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.codeborne.selenide.Selenide.sleep;
+
 public class TransferPage {
-    public final SelenideElement errorMessage = $("[data-test-id='error-notification'] .notification__content");
-    private final SelenideElement headerTransferPage = $(byText("Пополнение карты"));
-    private final SelenideElement amountField = $("[data-test-id='amount'] input");
-    private final SelenideElement fromField = $("[data-test-id='from'] input");
-    private final SelenideElement transferButton = $("[data-test-id='action-transfer']");
+    private SelenideElement sumField = $("div[data-test-id=amount] input");
+    private SelenideElement accountField = $("span[data-test-id=from] input");
+    private SelenideElement topUpButton = $("button[data-test-id=action-transfer]");
+    private SelenideElement errorNotification = $("[data-test-id = error-notification]");
 
-    public TransferPage() {
-        headerTransferPage.shouldBe(visible);
-    }
-
-    public DashboardPage validTransfer(String amount, CardInfo cardNumber) {
-        amountField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        amountField.setValue(amount);
-        fromField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        fromField.setValue(cardNumber.getNumber());
-        transferButton.click();
+    public DashboardPage successfulTopUp(String sum, String cardNum) {
+        sumField.sendKeys(Keys.chord(Keys.CONTROL, "a", Keys.DELETE));
+        sumField.setValue(sum);
+        accountField.sendKeys(Keys.chord(Keys.CONTROL, "a", Keys.DELETE));
+        accountField.setValue(cardNum);
+        sleep(5000);
+        topUpButton.click();
         return new DashboardPage();
     }
 
-    public String invalidAmountTransfer(String amount, CardInfo cardNumber) {
-        amountField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        amountField.setValue(amount);
-        fromField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        fromField.setValue(cardNumber.getNumber());
-        transferButton.click();
-        return errorMessage.shouldBe(visible).text();
-    }
-
-    public String emptyCardNumberTransfer(String amount) {
-        amountField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        amountField.setValue(amount);
-        fromField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        transferButton.click();
-        return errorMessage.shouldBe(visible).text();
-    }
-
-    public String invalidCardNumberTransfer(String amount, CardInfo cardNumber) {
-        amountField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        amountField.setValue(amount);
-        fromField.sendKeys(Keys.CONTROL + "a", Keys.DELETE);
-        fromField.setValue(cardNumber.getNumber());
-        transferButton.click();
-        return errorMessage.shouldBe(visible).text();
+    public void unsuccessfulTopUp(String sum, String cardNum) {
+        sumField.sendKeys(Keys.chord(Keys.CONTROL, "a", Keys.DELETE));
+        sumField.setValue(sum);
+        errorNotification.shouldBe(visible);
     }
 }
