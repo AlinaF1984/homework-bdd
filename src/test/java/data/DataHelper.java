@@ -1,8 +1,20 @@
 package data;
 
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import com.github.javafaker.Faker;
 import lombok.Value;
+import org.jetbrains.annotations.NotNull;
 
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+
+
+import  lombok.Value;
+import org.jetbrains.annotations.NotNull;
+import page.TransferPage;
+
+import static page.DashboardPage.*;
 public class DataHelper {
     private DataHelper() {}
 
@@ -43,4 +55,6 @@ public class DataHelper {
     public static class CardInfo {
         String number;
     }
+
+
 }
