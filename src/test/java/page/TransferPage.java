@@ -4,10 +4,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.visible;
-
 import static com.codeborne.selenide.Selenide.$;
-
-import static com.codeborne.selenide.Selenide.sleep;
 
 public class TransferPage {
     private SelenideElement sumField = $("div[data-test-id=amount] input");
@@ -20,7 +17,6 @@ public class TransferPage {
         sumField.setValue(sum);
         accountField.sendKeys(Keys.chord(Keys.CONTROL, "a", Keys.DELETE));
         accountField.setValue(cardNum);
-        sleep(5000);
         topUpButton.click();
         return new DashboardPage();
     }
