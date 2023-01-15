@@ -1,14 +1,16 @@
 package page;
 
-import data.DataHelper;
-
-import static com.codeborne.selenide.Selenide.$;
 import com.codeborne.selenide.SelenideElement;
+import data.DataHelper;
+import org.openqa.selenium.support.FindBy;
 
 public class LoginPage {
-    private SelenideElement loginField = $("[data-test-id=login] input");
-    private SelenideElement passwordField = $("[data-test-id=password] input");
-    private SelenideElement loginButton = $("[data-test-id=action-login]");
+    @FindBy(css = "[data-test-id=login] input")
+    private SelenideElement loginField;
+    @FindBy(css = "[data-test-id=password] input")
+    private SelenideElement passwordField;
+    @FindBy(css = "[data-test-id=action-login]")
+    private SelenideElement loginButton;
 
     public VerificationPage validLogin(DataHelper.AuthInfo info) {
         loginField.setValue(info.getLogin());
